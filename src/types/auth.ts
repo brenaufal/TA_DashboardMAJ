@@ -5,6 +5,8 @@ export interface LoginPayload {
 
 export interface User {
   username: string;
+  first_name?: string;
+  last_name?: string;
   fullname: string;
-  role: 'Manajer' | 'Supervisor';
+  role: 'Manajer' | 'Supervisor' | 'Operator';
 }

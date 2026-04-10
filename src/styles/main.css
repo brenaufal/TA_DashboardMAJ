@@ -1,4 +1,7 @@
+@import "flowbite/src/themes/default";
 @import "tailwindcss";
+@plugin "flowbite/plugin";
+@source "../../node_modules/flowbite";
 
 html,
 body,
@@ -11,6 +14,10 @@ body {
   background-color: #f8fafc;
   color: #0f172a;
   font-family: Inter, "Segoe UI", sans-serif;
+}
+
+.v-application {
+  font-family: Inter, "Segoe UI", sans-serif !important;
 }
 
 * {

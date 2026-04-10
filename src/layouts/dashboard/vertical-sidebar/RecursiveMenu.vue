@@ -1,0 +1,443 @@
+<template>
+  <!-- DIRECT ITEMS (leaf) -->
+  <v-list-item
+    v-for="item in menuItems.directItems"
+    :key="item.name"
+    :to="item.path"
+    class="is-item"
+    :class="props.branchClass"
+    link
+    exact
+    @click="setActiveItem(item.name)"
+  >
+    <template #prepend>
+      <span v-if="props.depth > 1" 
+        class="item-dot" 
+        :class="{ 'active-dot': activeItem === item.name }" 
+        aria-hidden="true" 
+    />
+      <v-icon :icon="item.meta.icon" size="20" class="item-icon" />
+    </template>
+
+    <v-list-item-title :style="{ fontSize: `${14 - props.depth * 0.5}px` }">
+      {{ item.meta.title }}
+    </v-list-item-title>
+  </v-list-item>
+
+  <!-- SUBHEADERS (groups) -->
+  <v-list-group
+    v-for="(subGroup, groupName) in menuItems.subGroups"
+    :key="createUniqueKey(groupName)"
+    :value="createUniqueKey(groupName)"
+    class="menu-group"
+    :class="[
+      `depth-${props.depth}`,
+      (props.depth === 0 && groupName === 'Logistic') ? 'logistic-scope' : props.branchClass
+    ]"
+     @click="handleSubheaderClick(groupName)"
+  >
+    <template v-slot:activator="{ props: activatorProps }">
+      <v-list-item
+        v-bind="activatorProps"
+        :class="[ 
+          props.depth === 0 ? 'is-header' : 'is-subheader',
+          (props.depth === 0 && groupName === 'Logistic') ? 'logistic-scope' : props.branchClass,
+          { 'v-list-item--active': isNodeActive(subGroup), 'subheader-clicked': clickedSubheader.value === groupName }
+        ]"
+      >
+        <template #prepend>
+          <div class="prepend-wrap" :class="{ 'no-icon': !menuItems.subGroupIcons[groupName] }">
+            <span v-if="props.depth >= 1" class="sub-line" aria-hidden="true"></span>
+            <v-icon
+              v-if="menuItems.subGroupIcons[groupName]"
+              :icon="menuItems.subGroupIcons[groupName]"
+              size="20"
+              class="sub-icon"
+            />
+          </div>
+        </template>
+
+        <v-list-item-title :style="{ fontSize: `${14 - props.depth * 0.5}px` }">
+          {{ groupName }}
+        </v-list-item-title>
+      </v-list-item>
+    </template>
+
+    <!-- propagate the branchClass downward -->
+    <RecursiveMenu
+      :menu-items="subGroup"
+      :parent-path="createUniqueKey(groupName)"
+      :depth="props.depth + 1"
+      :branch-class="(props.depth === 0 && groupName === 'Logistic') ? 'logistic-scope' : props.branchClass"
+    />
+  </v-list-group>
+</template>
+
+<script setup>
+import { useRoute } from 'vue-router';
+import { ref, onMounted } from 'vue';
+
+  const route = useRoute();
+  const activeItem = ref('');
+  const clickedSubheader = ref('');
+
+  const setActiveItem = (itemName) => {
+    activeItem.value = itemName;
+  };
+
+  const handleSubheaderClick = (groupName) => {
+  if (!clickedSubheader.value || clickedSubheader.value !== groupName) {
+    clickedSubheader.value = groupName;
+    }
+  };
+
+  const checkActiveOnRoute = () => {
+    const activePath = route.path;
+    for (const item of props.menuItems.directItems) {
+      if (item.path === activePath) {
+        activeItem.value = item.name;
+      }
+    }
+  };
+  onMounted(() => {
+    checkActiveOnRoute();  // Ensure active item persists on mount
+  });
+
+  const props = defineProps({
+    menuItems: { type: Object, required: true },
+    parentPath: { type: String, default: '' },
+    depth: { type: Number, default: 0 },
+    branchClass: { type: String, default: '' },
+  });
+
+  const createUniqueKey = (groupName) => {
+    return props.parentPath ? `${props.parentPath}-${groupName}` : groupName;
+  };
+
+  const isNodeActive = (node) => {
+    for (const item of node.directItems) {
+      // console.log(`Comparing Menu Path: '${item.path}' WITH Current Route: '${route.path}'`);
+      
+      if (item.path === route.path) {
+        return true;
+      }
+    }
+    
+    return Object.values(node.subGroups).some(subNode => isNodeActive(subNode));
+  };
+
+</script>
+
+<style>
+.menu-group {
+  position: relative;
+}
+
+/* defaults (Admin, Stamp, Etc.) */
+.custom-sidebar, :root {
+  --pad-header: 14px;
+  --pad-sub:   32px;
+  --pad-item:  58px;
+  --prepend-gap: 8px;
+
+  --dot-shift: -6px;
+  --sub1-shift: 2px;
+  --sub2-shift: -12px;
+}
+
+/* role-based padding */
+/* .v-list-item__prepend { margin-right: var(--prepend-gap) !important; } */
+.v-list-item.is-header    { padding-inline-start: var(--pad-header) !important; }
+.v-list-item.is-subheader { padding-inline-start: var(--pad-sub)    !important; }
+.v-list-item.is-item      { padding-inline-start: var(--pad-item)   !important; }
+
+/* Prepend gap for headers and subheaders */
+.v-list-item.is-header .v-list-item__prepend,
+.v-list-item.is-subheader .v-list-item__prepend {
+  margin-right: var(--prepend-gap) !important; 
+}
+
+.v-list-item.is-item .v-list-item__spacer {
+  width: 8px !important;
+}
+
+ .v-list-item.is-subheader.depth-1 .prepend-wrap {
+  margin-left: -10px;
+}
+
+.v-list-item.is-subheader.depth-2 .prepend-wrap {
+  margin-left: 0 !important;
+}
+
+.prepend-wrap{ display:flex; align-items:center; }
+.prepend-wrap.no-icon { gap: 0; }
+.v-list-item.is-subheader .prepend-wrap.no-icon { --prepend-gap: 4px; }
+
+.item-dot{
+  --dot-size: 4px;
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: 50%;
+  background: #e0e0e0;
+  margin-right: 8px;
+  transform: translateX(var(--dot-shift));
+}
+.sub-line {
+  width:8px;
+  height:1.5px;
+  background: rgba(0,0,0,.12);
+  margin-right:8px;
+}
+.depth-1 .sub-line{ transform: translateX(var(--sub1-shift)); }
+.depth-2 .sub-line{ transform: translateX(var(--sub2-shift)); }
+
+/* logistic */
+.custom-sidebar .logistic-scope{
+  --pad-sub: 36px;
+  --pad-sub2: 46px;
+  --pad-item: 78px;
+
+  --dot-shift: -4px;
+  --sub1-shift: -4px;
+  --sub2-shift: 4px;
+}
+
+.custom-sidebar .logistic-scope .depth-1 .v-list-item.is-subheader {
+  --pad-sub: 36px;
+}
+
+.custom-sidebar .logistic-scope .depth-2 .v-list-item.is-subheader {
+  --pad-sub: 46px;
+}
+
+.custom-sidebar .logistic-scope .v-list-item.is-subheader {
+  padding-left: var(--pad-sub);
+}
+
+/* Default Color*/
+.v-list-item {
+  color: #666666;
+}
+
+.v-list-item .v-icon {
+  color: #666666;
+}
+
+/* Dot ACTIVE*/
+.item-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  margin-right: 8px;
+  transform: translateX(var(--dot-shift));
+}
+
+.item-dot.active-dot {
+  background-color: #303F9F !important;
+}
+
+/* Horizontal LINE ACTIVE */
+/* .v-list-item.is-subheader:active .sub-line,
+.v-list-item.is-subheader:focus .sub-line {
+  background-color: #303F9F !important;
+} */
+
+.v-list-item.is-subheader:not(.v-list-item--active) .sub-line {
+  background-color: rgba(0, 0, 0, 0.12) !important; /* Grey color when not active */
+}
+
+.v-list-item.is-subheader.active .sub-line {
+  background-color: #303F9F !important; /* Active Horizontal Line Color */
+}
+
+.v-list-item.is-subheader.v-list-item--active .sub-line {
+  background-color: #303F9F !important; /* Active Horizontal Line Color */
+}
+
+.sub-line {
+  width: 8px;
+  height: 1.5px;
+  background: rgba(0, 0, 0, .12);
+  margin-right: 8px;
+  transition: background-color 0.3s ease;
+}
+
+/* *** */
+.v-list-group {
+  transition: all 0.3s ease;
+}
+
+.v-list-group.depth-0 > .v-list-group__header::before {
+  transition: all 0.3s ease-in-out;
+}
+
+.item-icon{
+  margin-left: 0;
+}
+
+.v-list-item.v-list-item--active:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Sub line */
+/* .prepend-wrap{
+  display:flex;
+  align-items:center;
+} */
+
+.sub-icon{ margin-left: 0; }
+
+/* Active Vertical Line */
+.v-list-group.depth-1 > .v-list-group__items > .v-list-item.v-list-group__header::before,
+.v-list-group.depth-2 > .v-list-group__items > .v-list-item.v-list-group__header::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  background-color: rgba(0, 0, 0, 0.12);
+  z-index: 2;
+}
+
+/* Change the vertical line color when the subheader is active (clicked) */
+.v-list-group.depth-1 .v-list-item.v-list-group__header.v-list-item--active::before,
+.v-list-group.depth-2 .v-list-item.v-list-group__header.v-list-item--active::before {
+  background-color: #303F9F !important;
+}
+
+/* Transition effect for both lines (vertical and horizontal) */
+.v-list-group.depth-1 > .v-list-group__items > .v-list-item.v-list-group__header::before,
+.v-list-group.depth-2 > .v-list-group__items > .v-list-item.v-list-group__header::before,
+.v-list-group.depth-1 > .v-list-group__items > .v-list-item.v-list-group__header::after,
+.v-list-group.depth-2 > .v-list-group__items > .v-list-item.v-list-group__header::after {
+  transition: background-color 0.3s ease-in-out;
+}
+
+/* Garis Vertical Active color*/
+.menu-group.depth-1.v-list-group--open::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20px;
+  width: 1.3px;
+  background-color: #303F9F;
+  z-index: 3;
+  height: calc(100% - 5px);
+}
+
+.menu-group.depth-2.v-list-group--open::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 39px;
+  width: 2px;
+  background-color: #303F9F;
+  z-index: 3;
+  height: calc(100% - 5px);
+}
+
+/* Garis Vertical */
+.menu-group.depth-0.v-list-group--open::before,
+.menu-group.depth-1.v-list-group--open::before,
+.menu-group.depth-2.v-list-group--open::before {
+  content: '';
+  position: absolute;
+  top: 48px;
+  bottom: 0;
+  width: 1px;
+  background-color: rgba(0, 0, 0, 0.12);
+  z-index: 1;
+}
+
+.menu-group.depth-0.v-list-group--open::before {
+  left: 20px;
+}
+
+.menu-group.depth-1.v-list-group--open::before {
+  left: 39px;
+}
+
+.menu-group.depth-2.v-list-group--open::before {
+  left: 62px;
+}
+
+/* Background Color */
+.v-list-item--active[href] {
+  background-color: transparent !important;
+}
+
+.v-list-item--active[href] .v-list-item-title,
+.v-list-item--active[href] .v-icon {
+  color: #303F9F !important;
+  font-weight: 700 !important;
+}
+
+.v-list-item--active[href]::before {
+  background-color: #1a237e !important;
+}
+
+.v-list-group--active > .v-list-group__header > .v-list-item {
+    background-color: transparent !important;
+    color: inherit !important;
+}
+.v-list-group--active > .v-list-group__header > .v-list-item .v-list-item-title,
+.v-list-group--active > .v-list-group__header > .v-list-item .v-icon {
+    color: inherit !important;
+    font-weight: normal !important;
+}
+
+.v-list-item.active-top-level-header,
+.v-list-group.depth-0 .v-list-item.v-list-group__header.v-list-item--active {
+  background-color: #1a237e !important;
+  color: #fff !important;
+}
+
+.v-list-item.active-top-level-header .v-list-item-title,
+.v-list-item.active-top-level-header .v-icon,
+.v-list-group.depth-0 .v-list-item.v-list-group__header.v-list-item--active .v-list-item-title,
+.v-list-group.depth-0 .v-list-item.v-list-group__header.v-list-item--active .v-icon {
+  color: #fff !important;
+}
+
+.v-list-group.depth-1 .v-list-item.v-list-group__header.v-list-item--active,
+.v-list-group.depth-2 .v-list-item.v-list-group__header.v-list-item--active {
+    color: inherit !important;
+    background-color: transparent !important;
+}
+
+.v-list-group .v-list-item.v-list-group__header {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.v-list-item {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.v-list-item:hover {
+  color: #1a237e !important;
+  transform: translateX(4px);
+  box-shadow: none;
+}
+
+.v-list-group.depth-1 .v-list-item.v-list-group__header.v-list-item--active .v-list-item-title,
+.v-list-group.depth-1 .v-list-item.v-list-group__header.v-list-item--active .v-icon,
+.v-list-group.depth-2 .v-list-item.v-list-group__header.v-list-item--active .v-list-item-title,
+.v-list-group.depth-2 .v-list-item.v-list-group__header.v-list-item--active .v-icon {
+  color: inherit !important;
+  font-weight: normal !important;
+}
+
+/* Arrow */
+.v-list-group .v-list-item__append .v-icon {
+  transform: rotate(-90deg) !important;
+  transition: transform 0.2s ease-in-out;
+}
+.v-list-group--open > .v-list-group__header > .v-list-item__append .v-icon {
+  transform: rotate(-180deg) !important;
+}
+</style>

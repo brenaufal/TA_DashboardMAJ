@@ -7,11 +7,21 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'Dashboard',
+      component: () => import('@/layouts/dashboard/DashboardLayout.vue'),
       meta: {
         requiresAuth: true
       },
-      component: () => import('@/views/dashboard/DashboardPage.vue')
+      children: [
+        {
+          path: '',
+          redirect: '/dashboard'
+        },
+        {
+          path: 'dashboard',
+          name: 'Dashboard',
+          component: () => import('@/views/dashboard/DashboardPage.vue')
+        }
+      ]
     },
     PublicRoutes,
     {
@@ -29,7 +39,7 @@ router.beforeEach((to) => {
   }
 
   if (to.path === '/login' && authStore.isAuthenticated) {
-    return '/';
+    return '/dashboard';
   }
 
   return true;

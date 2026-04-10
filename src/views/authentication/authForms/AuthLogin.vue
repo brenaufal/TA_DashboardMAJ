@@ -26,7 +26,7 @@ async function validate(_: unknown, { setErrors }: { setErrors: (errors: Record<
       password: password.value
     });
 
-    await router.push('/');
+    await router.push('/dashboard');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Login gagal.';
     setErrors({ apiError: message });
