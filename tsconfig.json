@@ -18,5 +18,15 @@
     },
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "vite.config.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "vite.config.ts"],
+  "exclude": [
+    "src/components/notifications/**",
+    "src/layouts/dashboard/vertical-sidebar/NavCollapse/**",
+    "src/layouts/dashboard/vertical-sidebar/NavGroup/**",
+    "src/layouts/dashboard/vertical-sidebar/NavItem/**",
+    "src/layouts/dashboard/vertical-sidebar/extrabox/**",
+    "src/layouts/dashboard/vertical-sidebar/RecursiveMenu.vue",
+    "src/layouts/dashboard/vertical-header/ProfileDD.vue",
+    "src/views/dashboard/maj/**"
+  ]
 }

@@ -1,37 +1,30 @@
 @import "tailwindcss";
 @import "flowbite/dist/flowbite.css";
-@import "@themesberg/flowbite/dist/flowbite.css";
 
-/* Apply Poppins font globally */
+/* Global font */
 * {
-  font-family: 'Poppins', sans-serif !important;
+  font-family: 'Poppins', sans-serif;
 }
 
 body,
 html,
 #app {
-  font-family: 'Poppins', sans-serif !important;
+  font-family: 'Poppins', sans-serif;
 }
 
-/* Ensure Vuetify components use Poppins */
-.v-application,
-.v-application * {
-  font-family: 'Poppins', sans-serif !important;
+/* Form styling (NO @apply, Tailwind v4 safe) */
+input,
+textarea,
+select {
+  border: 2px solid #9ca3af; /* gray-400 */
+  background-color: #ffffff;
+  border-radius: 0.375rem;
+  padding: 0.5rem;
 }
 
-@layer base {
-  input[type="text"],
-  input[type="number"],
-  input[type="email"],
-  input[type="password"],
-  textarea,
-  select {
-    @apply border-2 border-gray-400 bg-white rounded-md;
-  }
-
-  input:focus,
-  textarea:focus,
-  select:focus {
-    @apply border-green-600 ring-0;
-  }
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #16a34a; /* green-600 */
+  outline: none;
 }
