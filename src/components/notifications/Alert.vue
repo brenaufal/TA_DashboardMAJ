@@ -1,26 +1,38 @@
-<template>
-  <v-snackbar
-    v-model="alert.status"
-    :color="alert.type"
-    location="top right"
-    :timeout="5000"
-    variant="elevated"
-    class="notification-alert"
-  >
-    <div class="text-body-1">{{ alert.message }}</div>
-  </v-snackbar>
-</template>
-
 <script setup lang="ts">
-import { storeToRefs } from 'pinia';
-import { useNotificationStore } from '@/stores/notification';
+import { storeToRefs } from 'pinia'
+import { useNotificationStore } from '@/stores/notification'
+import { watch } from 'vue'
 
-const notificationStore = useNotificationStore();
-const { alert } = storeToRefs(notificationStore);
+const notificationStore = useNotificationStore()
+const { alert } = storeToRefs(notificationStore)
+
+// auto close (replace timeout)
+watch(alert, (val) => {
+  if (val.status) {
+    setTimeout(() => {
+      alert.value.status = false
+    }, 5000)
+  }
+})
 </script>
 
-<style scoped>
-.notification-alert {
-  z-index: 9999;
-}
-</style>
+<template>
+  <div
+    v-show="alert.status"
+    class="fixed top-4 right-4 z-[9999] transition-all"
+  >
+    <div
+      class="min-w-[250px] max-w-sm p-4 rounded-lg shadow-lg text-white"
+      :class="{
+        'bg-green-500': alert.type === 'success',
+        'bg-red-500': alert.type === 'error',
+        'bg-yellow-500': alert.type === 'warning',
+        'bg-blue-500': alert.type === 'info'
+      }"
+    >
+      <p class="text-sm font-medium">
+        {{ alert.message }}
+      </p>
+    </div>
+  </div>
+</template>

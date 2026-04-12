@@ -1,132 +1,146 @@
+<script setup lang="ts">
+import { useRoute, useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+
+const route = useRoute()
+const router = useRouter()
+
+const activeItem = ref<string>('')
+const clickedSubheader = ref<string>('')
+
+// 👇 NEW (for collapse)
+const openGroups = ref<Record<string, boolean>>({})
+
+const props = defineProps<{
+  menuItems: any
+  parentPath?: string
+  depth?: number
+  branchClass?: string
+}>()
+
+const depth = props.depth ?? 0
+const branchClass = props.branchClass ?? ''
+
+const setActiveItem = (itemName: string) => {
+  activeItem.value = itemName
+}
+
+const handleItemClick = (item: any) => {
+  setActiveItem(item.name)
+  router.push(item.path)
+}
+
+const toggleGroup = (groupName: string) => {
+  openGroups.value[groupName] = !openGroups.value[groupName]
+}
+
+const checkActiveOnRoute = () => {
+  const activePath = route.path
+  for (const item of props.menuItems.directItems) {
+    if (item.path === activePath) {
+      activeItem.value = item.name
+    }
+  }
+}
+
+onMounted(() => {
+  checkActiveOnRoute()
+})
+
+const createUniqueKey = (groupName: string) => {
+  return props.parentPath
+    ? `${props.parentPath}-${groupName}`
+    : groupName
+}
+
+const isNodeActive = (node: any): boolean => {
+  for (const item of node.directItems) {
+    if (item.path === route.path) return true
+  }
+
+  return Object.values(node.subGroups).some((sub: any) =>
+    isNodeActive(sub)
+  )
+}
+</script>
+
 <template>
-  <!-- DIRECT ITEMS (leaf) -->
-  <v-list-item
-    v-for="item in menuItems.directItems"
-    :key="item.name"
-    :to="item.path"
-    class="is-item"
-    :class="props.branchClass"
-    link
-    exact
-    @click="setActiveItem(item.name)"
-  >
-    <template #prepend>
-      <span v-if="props.depth > 1" 
-        class="item-dot" 
-        :class="{ 'active-dot': activeItem === item.name }" 
-        aria-hidden="true" 
-    />
-      <v-icon :icon="item.meta.icon" size="20" class="item-icon" />
-    </template>
+  <!-- DIRECT ITEMS -->
+  <div v-for="item in menuItems.directItems" :key="item.name">
+    <button
+      @click="handleItemClick(item)"
+      class="w-full flex items-center gap-2 px-4 py-2 text-left rounded-lg transition"
+      :class="[
+        branchClass,
+        activeItem === item.name
+          ? 'text-indigo-700 font-semibold'
+          : 'text-gray-600 hover:text-indigo-600 hover:translate-x-1'
+      ]"
+      :style="{ fontSize: `${14 - depth * 0.5}px` }"
+    >
+      <!-- dot -->
+      <span
+        v-if="depth > 1"
+        class="w-1 h-1 rounded-full"
+        :class="activeItem === item.name ? 'bg-indigo-700' : 'bg-gray-300'"
+      ></span>
 
-    <v-list-item-title :style="{ fontSize: `${14 - props.depth * 0.5}px` }">
+      <!-- icon -->
+      <span v-if="item.meta?.icon" class="text-sm">
+        {{ item.meta.icon }}
+      </span>
+
       {{ item.meta.title }}
-    </v-list-item-title>
-  </v-list-item>
+    </button>
+  </div>
 
-  <!-- SUBHEADERS (groups) -->
-  <v-list-group
+  <!-- SUB GROUP -->
+  <div
     v-for="(subGroup, groupName) in menuItems.subGroups"
     :key="createUniqueKey(groupName)"
-    :value="createUniqueKey(groupName)"
-    class="menu-group"
-    :class="[
-      `depth-${props.depth}`,
-      (props.depth === 0 && groupName === 'Logistic') ? 'logistic-scope' : props.branchClass
-    ]"
-     @click="handleSubheaderClick(groupName)"
+    class="ml-2"
   >
-    <template v-slot:activator="{ props: activatorProps }">
-      <v-list-item
-        v-bind="activatorProps"
-        :class="[ 
-          props.depth === 0 ? 'is-header' : 'is-subheader',
-          (props.depth === 0 && groupName === 'Logistic') ? 'logistic-scope' : props.branchClass,
-          { 'v-list-item--active': isNodeActive(subGroup), 'subheader-clicked': clickedSubheader.value === groupName }
-        ]"
+    <!-- HEADER -->
+    <button
+      @click="toggleGroup(groupName)"
+      class="w-full flex items-center justify-between px-4 py-2 rounded-lg transition"
+      :class="[
+        depth === 0 ? 'font-semibold' : '',
+        isNodeActive(subGroup)
+          ? 'text-indigo-700'
+          : 'text-gray-600 hover:text-indigo-600'
+      ]"
+      :style="{ fontSize: `${14 - depth * 0.5}px` }"
+    >
+      <div class="flex items-center gap-2">
+        <!-- optional icon -->
+        <span v-if="menuItems.subGroupIcons?.[groupName]">
+          {{ menuItems.subGroupIcons[groupName] }}
+        </span>
+
+        {{ groupName }}
+      </div>
+
+      <!-- arrow -->
+      <span
+        class="transition-transform"
+        :class="openGroups[groupName] ? 'rotate-90' : ''"
       >
-        <template #prepend>
-          <div class="prepend-wrap" :class="{ 'no-icon': !menuItems.subGroupIcons[groupName] }">
-            <span v-if="props.depth >= 1" class="sub-line" aria-hidden="true"></span>
-            <v-icon
-              v-if="menuItems.subGroupIcons[groupName]"
-              :icon="menuItems.subGroupIcons[groupName]"
-              size="20"
-              class="sub-icon"
-            />
-          </div>
-        </template>
+        ▶
+      </span>
+    </button>
 
-        <v-list-item-title :style="{ fontSize: `${14 - props.depth * 0.5}px` }">
-          {{ groupName }}
-        </v-list-item-title>
-      </v-list-item>
-    </template>
-
-    <!-- propagate the branchClass downward -->
-    <RecursiveMenu
-      :menu-items="subGroup"
-      :parent-path="createUniqueKey(groupName)"
-      :depth="props.depth + 1"
-      :branch-class="(props.depth === 0 && groupName === 'Logistic') ? 'logistic-scope' : props.branchClass"
-    />
-  </v-list-group>
+    <!-- CHILDREN -->
+    <div v-show="openGroups[groupName]" class="ml-3">
+      <RecursiveMenu
+        :menu-items="subGroup"
+        :parent-path="createUniqueKey(groupName)"
+        :depth="depth + 1"
+        :branch-class="branchClass"
+      />
+    </div>
+  </div>
 </template>
-
-<script setup>
-import { useRoute } from 'vue-router';
-import { ref, onMounted } from 'vue';
-
-  const route = useRoute();
-  const activeItem = ref('');
-  const clickedSubheader = ref('');
-
-  const setActiveItem = (itemName) => {
-    activeItem.value = itemName;
-  };
-
-  const handleSubheaderClick = (groupName) => {
-  if (!clickedSubheader.value || clickedSubheader.value !== groupName) {
-    clickedSubheader.value = groupName;
-    }
-  };
-
-  const checkActiveOnRoute = () => {
-    const activePath = route.path;
-    for (const item of props.menuItems.directItems) {
-      if (item.path === activePath) {
-        activeItem.value = item.name;
-      }
-    }
-  };
-  onMounted(() => {
-    checkActiveOnRoute();  // Ensure active item persists on mount
-  });
-
-  const props = defineProps({
-    menuItems: { type: Object, required: true },
-    parentPath: { type: String, default: '' },
-    depth: { type: Number, default: 0 },
-    branchClass: { type: String, default: '' },
-  });
-
-  const createUniqueKey = (groupName) => {
-    return props.parentPath ? `${props.parentPath}-${groupName}` : groupName;
-  };
-
-  const isNodeActive = (node) => {
-    for (const item of node.directItems) {
-      // console.log(`Comparing Menu Path: '${item.path}' WITH Current Route: '${route.path}'`);
-      
-      if (item.path === route.path) {
-        return true;
-      }
-    }
-    
-    return Object.values(node.subGroups).some(subNode => isNodeActive(subNode));
-  };
-
-</script>
 
 <style>
 .menu-group {

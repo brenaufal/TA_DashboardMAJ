@@ -54,11 +54,16 @@ function goToDashboard() {
               : 'bg-white border-gray-200 hover:bg-gray-50'"
           >
             <!-- Bullet -->
+             <div>
+              <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m4 12 8-8 8 8M6 10.5V19a1 1 0 0 0 1 1h3v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h3a1 1 0 0 0 1-1v-8.5"/>
+              </svg>
+             </div>
             <div class="w-2 h-2 mt-2 rounded-full bg-gradient-to-br from-blue-600 to-red-500"></div>
 
             <!-- Text -->
             <div>
-              <p class="font-medium text-sm">Dashboard</p>
+              <p class="font-medium text-sm">Home</p>
               <p class="text-xs text-gray-400">
                 Ringkasan delivery dan plan
               </p>
@@ -68,14 +73,14 @@ function goToDashboard() {
       </ul>
 
       <!-- Info Card -->
-      <div class="mt-6 p-4 rounded-xl bg-blue-50 border border-blue-200">
+      <!-- <div class="mt-6 p-4 rounded-xl bg-blue-50 border border-blue-200">
         <p class="text-sm font-semibold mb-1">
           Prototype Tugas Akhir
         </p>
         <p class="text-xs text-gray-600">
           Layout ini memakai folder <b>layouts</b> untuk sidebar, header, dan dashboard shell.
         </p>
-      </div>
+      </div> -->
     </div>
   </aside>
 </template>

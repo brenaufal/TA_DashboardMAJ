@@ -1,65 +1,77 @@
-<template>
-  <v-dialog v-model="dialog.status" persistent max-width="600">
-    <v-card>
-      <v-card-title class="text-h5 pa-4" :class="getColorClass">
-        {{ dialog.title }}
-      </v-card-title>
-
-      <v-card-text class="pa-6 text-h6 text-center">
-        {{ dialog.message }}
-      </v-card-text>
-
-      <v-divider></v-divider>
-
-      <v-card-actions class="pa-4">
-        <v-btn
-          v-if="dialog.onOk"
-          color="warning"
-          variant="elevated"
-          @click="handleOk"
-        >
-          OK
-        </v-btn>
-        <v-spacer></v-spacer>
-        <v-btn color="grey" variant="text" @click="handleClose"> Close </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-</template>
-
 <script setup lang="ts">
-import { computed } from 'vue';
-import { storeToRefs } from 'pinia';
-import { useNotificationStore } from '@/stores/notification';
+import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useNotificationStore } from '@/stores/notification'
 
-const notificationStore = useNotificationStore();
-const { dialog } = storeToRefs(notificationStore);
+const notificationStore = useNotificationStore()
+const { dialog } = storeToRefs(notificationStore)
 
 const getColorClass = computed(() => {
   const colorMap: Record<string, string> = {
-    success: 'bg-success text-white',
-    warning: 'bg-warning text-white',
-    error: 'bg-error text-white',
-    info: 'bg-info text-white',
-  };
-  return colorMap[dialog.value.type] || 'bg-info text-white';
-});
+    success: 'bg-green-500 text-white',
+    warning: 'bg-yellow-500 text-white',
+    error: 'bg-red-500 text-white',
+    info: 'bg-blue-500 text-white'
+  }
+  return colorMap[dialog.value.type] || 'bg-blue-500 text-white'
+})
 
 const handleClose = () => {
-  dialog.value.status = false;
-  if (dialog.value.onClose) {
-    dialog.value.onClose();
-  }
-  dialog.value.onClose = () => {};
-  dialog.value.onOk = null;
-};
+  dialog.value.status = false
+  dialog.value.onClose?.()
+  dialog.value.onClose = () => {}
+  dialog.value.onOk = null
+}
 
 const handleOk = () => {
-  dialog.value.status = false;
-  if (dialog.value.onOk) {
-    dialog.value.onOk();
-  }
-  dialog.value.onClose = () => {};
-  dialog.value.onOk = null;
-};
+  dialog.value.status = false
+  dialog.value.onOk?.()
+  dialog.value.onClose = () => {}
+  dialog.value.onOk = null
+}
 </script>
+
+<template>
+  <!-- Overlay -->
+  <div
+    v-if="dialog.status"
+    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"
+  >
+    <!-- Modal -->
+    <div class="bg-white w-full max-w-lg rounded-xl shadow-lg overflow-hidden">
+
+      <!-- Header -->
+      <div class="px-4 py-3 font-semibold text-lg" :class="getColorClass">
+        {{ dialog.title }}
+      </div>
+
+      <!-- Body -->
+      <div class="px-6 py-6 text-center text-base text-gray-700">
+        {{ dialog.message }}
+      </div>
+
+      <!-- Divider -->
+      <div class="border-t"></div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-end gap-2 p-4">
+        
+        <button
+          v-if="dialog.onOk"
+          @click="handleOk"
+          class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition"
+        >
+          OK
+        </button>
+
+        <button
+          @click="handleClose"
+          class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded transition"
+        >
+          Close
+        </button>
+
+      </div>
+    </div>
+  </div>
+</template>
