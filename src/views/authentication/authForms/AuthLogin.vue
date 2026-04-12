@@ -97,9 +97,9 @@ async function validate(_: unknown, { setErrors }: { setErrors: (errors: Record<
       {{ errors.apiError }}
     </div>
 
-    <div class="mt-4 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">
+    <!-- <div class="mt-4 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">
       Coba login dengan `manager / manager123` atau `supervisor / supervisor123`.
-    </div>
+    </div> -->
   </Form>
 </template>
 

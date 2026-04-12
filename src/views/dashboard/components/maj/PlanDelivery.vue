@@ -5,7 +5,7 @@
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
       
       <!-- Title -->
-      <h2 class="text-xl font-semibold">
+      <h2 class="text-2xl font-semibold mb-4">
         Plan Delivery
       </h2>
 
@@ -18,7 +18,7 @@
           :class="[
             'px-3 py-1 rounded-md border text-sm transition',
             tab === item.value
-              ? 'bg-blue-600 text-white border-blue-600'
+              ? 'bg-white text-blue-600 border-blue-600'
               : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'
           ]"
         >
@@ -28,12 +28,12 @@
     </div>
 
     <!-- Card -->
-    <div class="border rounded-xl p-4 bg-white shadow-sm">
+    <div class=" rounded-xl p-4 bg-white shadow-sm">
       
       <!-- Title -->
-      <h2 class="text-center font-semibold mb-4">
+      <!-- <h2 class="text-center font-semibold mb-4">
         Plan Delivery {{ modelTitle }} {{ currentMonth }} {{ currentYear }}
-      </h2>
+      </h2> -->
 
       <!-- Chart -->
       <div class="w-full">
@@ -51,9 +51,18 @@ import PlanDeliveryChart from '@/views/dashboard/components/chart/PlanDeliveryCh
 
 const tab = ref('ADM_SAP');
 
-const modelTitle = computed(() => tab.value);
-const currentMonth = computed(() => new Date().toLocaleString('default', { month: 'long' }));
-const currentYear = computed(() => new Date().toLocaleString('default', { year: 'numeric' }));
+const tabs = [
+  { label: 'ADM SAP', value: 'ADM_SAP' },
+  { label: 'ADM KAP', value: 'ADM_KAP' },
+  { label: 'HMMI', value: 'DN_HMMI' },
+  { label: 'MKM', value: 'MKM' },
+  { label: 'MMKI', value: 'MMKI' },
+  { label: 'TMMIN', value: 'TMMIN' }
+]
+
+// const modelTitle = computed(() => tab.value);
+// const currentMonth = computed(() => new Date().toLocaleString('default', { month: 'long' }));
+// const currentYear = computed(() => new Date().toLocaleString('default', { year: 'numeric' }));
 </script>
 
 <style scoped>
