@@ -38,73 +38,103 @@ async function validate(_: unknown, { setErrors }: { setErrors: (errors: Record<
   <div class="text-center mb-7">
     <img src="@/assets/images/MAJ-LOGO-3.png" alt="Logo MAJ" class="brand-logo mx-auto mb-5" />
     <h1 class="mb-2 text-3xl font-bold text-slate-900">Inventory System</h1>
-    <!-- <p class="text-sm leading-6 text-slate-600">
-      Login sementara menggunakan data dummy sampai backend CI4 siap.
-    </p> -->
   </div>
 
-  <Form v-slot="{ errors, isSubmitting }" class="login-form" @submit="validate">
-    <div class="mb-5">
-      <label for="username" class="block text-sm font-semibold text-slate-700">Username</label>
+  <Form v-slot="{ errors, isSubmitting }" class="login-form space-y-5" @submit="validate">
+    <!-- USERNAME -->
+    <div>
+      <label for="username" class="block text-sm font-semibold text-slate-700">
+        Username <span class="text-red-500">*</span>
+      </label>
+
       <input
         id="username"
         v-model="username"
         aria-label="Username"
         type="text"
-        class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-700 focus:ring-4 focus:ring-blue-100"
+        required
+        placeholder="Masukkan username"
+        :class="[
+          'mt-2 w-full rounded-2xl border px-4 py-3 text-slate-900 outline-none transition',
+          errors.username
+            ? 'border-red-500 bg-blue-50 focus:ring-red-100 focus:border-red-500'
+            : 'border-slate-200 bg-white focus:border-blue-700 focus:ring-4 focus:ring-blue-100'
+        ]"
       />
-      <p v-if="username && typeof usernameRules[0](username) === 'string'" class="mt-2 text-sm text-red-700">
-        {{ usernameRules[0](username) }}
+
+      <p v-if="!username" class="mt-2 text-sm text-red-600">
+        Username wajib diisi
       </p>
     </div>
 
+    <!-- PASSWORD -->
     <div>
-      <label for="password" class="block text-sm font-semibold text-slate-700">Password</label>
-      <div class="mt-2 flex items-center rounded-2xl border border-slate-200 bg-white pr-3 transition focus-within:border-blue-700 focus-within:ring-4 focus-within:ring-blue-100">
+      <label for="password" class="block text-sm font-semibold text-slate-700">
+        Password <span class="text-red-500">*</span>
+      </label>
+
+      <div class="relative mt-2">
         <input
           id="password"
           v-model="password"
-          aria-label="Password"
           :type="showPassword ? 'text' : 'password'"
-          class="w-full rounded-2xl bg-transparent px-4 py-3 text-slate-900 outline-none"
+          required
+          placeholder="Masukkan password"
+          :class="[
+            'w-full rounded-2xl border px-4 py-3 pr-12 text-slate-900 outline-none transition',
+            !password
+              ? 'border-red-500 bg-blue-50 focus:ring-4 focus:ring-blue-100 focus:border-red-500'
+              : 'border-slate-200 bg-white focus:ring-4 focus:ring-blue-100 focus:border-blue-600'
+          ]"
         />
+
+        <!-- ICON INSIDE INPUT -->
         <button
           type="button"
-          class="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
           @click="showPassword = !showPassword"
+          class="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-800"
         >
           <EyeInvisibleOutlined v-if="!showPassword" />
           <EyeOutlined v-else />
         </button>
       </div>
-      <p
-        v-if="password && passwordRules.map((rule) => rule(password)).find((result) => typeof result === 'string')"
-        class="mt-2 text-sm text-red-700"
-      >
-        {{ passwordRules.map((rule) => rule(password)).find((result) => typeof result === 'string') }}
+
+      <p v-if="!password" class="mt-2 text-sm text-red-600">
+        Password wajib diisi
       </p>
     </div>
 
+    <!-- BUTTON -->
     <button
       type="submit"
-      class="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-blue-300"
+      class="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-blue-300"
       :disabled="isSubmitting"
     >
-      {{ isSubmitting ? 'Memproses...' : 'Login' }}
+      <span v-if="isSubmitting" class="animate-pulse">Memproses...</span>
+      <span v-else>Login</span>
     </button>
 
-    <div v-if="errors.apiError" class="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+    <!-- API ERROR -->
+    <div
+      v-if="errors.apiError"
+      class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+    >
       {{ errors.apiError }}
     </div>
 
-    <!-- <div class="mt-4 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">
-      Coba login dengan `manager / manager123` atau `supervisor / supervisor123`.
-    </div> -->
   </Form>
 </template>
 
 <style scoped>
 .brand-logo {
   width: 226px;
+}
+
+input:focus-visible {
+  outline: none;
+}
+
+input:focus {
+  border-color: rgb(59 130 246);
 }
 </style>
