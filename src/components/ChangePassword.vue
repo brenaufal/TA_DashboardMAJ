@@ -194,3 +194,9 @@ const handleClose = () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+input:focus {
+  border-color: rgb(59 130 246);
+}
+</style>

@@ -11,6 +11,8 @@ const authStore = useAuthStore();
 const showPassword = ref(false);
 const password = ref('');
 const username = ref('');
+const usernameTouched = ref(false)
+const passwordTouched = ref(false)
 
 const passwordRules = [
   (v: string) => !!v || 'Password wajib diisi',
@@ -50,19 +52,18 @@ async function validate(_: unknown, { setErrors }: { setErrors: (errors: Record<
       <input
         id="username"
         v-model="username"
-        aria-label="Username"
+        @blur="usernameTouched = true"
         type="text"
-        required
         placeholder="Masukkan username"
         :class="[
           'mt-2 w-full rounded-2xl border px-4 py-3 text-slate-900 outline-none transition',
-          errors.username
-            ? 'border-red-500 bg-blue-50 focus:ring-red-100 focus:border-red-500'
+          usernameTouched && !username
+            ? 'border-red-500 bg-blue-50 focus:ring-red-100'
             : 'border-slate-200 bg-white focus:border-blue-700 focus:ring-4 focus:ring-blue-100'
         ]"
       />
 
-      <p v-if="!username" class="mt-2 text-sm text-red-600">
+      <p v-if="usernameTouched && !username" class="mt-2 text-sm text-red-600">
         Username wajib diisi
       </p>
     </div>
@@ -77,13 +78,13 @@ async function validate(_: unknown, { setErrors }: { setErrors: (errors: Record<
         <input
           id="password"
           v-model="password"
+          @blur="passwordTouched = true"
           :type="showPassword ? 'text' : 'password'"
-          required
           placeholder="Masukkan password"
           :class="[
             'w-full rounded-2xl border px-4 py-3 pr-12 text-slate-900 outline-none transition',
-            !password
-              ? 'border-red-500 bg-blue-50 focus:ring-4 focus:ring-blue-100 focus:border-red-500'
+            passwordTouched && !password
+              ? 'border-red-500 bg-blue-50 focus:ring-red-100'
               : 'border-slate-200 bg-white focus:ring-4 focus:ring-blue-100 focus:border-blue-600'
           ]"
         />
@@ -99,7 +100,7 @@ async function validate(_: unknown, { setErrors }: { setErrors: (errors: Record<
         </button>
       </div>
 
-      <p v-if="!password" class="mt-2 text-sm text-red-600">
+      <p v-if="passwordTouched && !password" class="mt-2 text-sm text-red-600">
         Password wajib diisi
       </p>
     </div>
