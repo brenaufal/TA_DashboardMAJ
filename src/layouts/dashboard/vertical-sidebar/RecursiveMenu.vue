@@ -1,143 +1,150 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 
 const route = useRoute()
 const router = useRouter()
 
-const activeItem = ref<string>('')
-const clickedSubheader = ref<string>('')
-
-// 👇 NEW (for collapse)
 const openGroups = ref<Record<string, boolean>>({})
 
 const props = defineProps<{
   menuItems: any
   parentPath?: string
   depth?: number
-  branchClass?: string
+  mini?: boolean
+  hovered?: boolean
 }>()
 
 const depth = props.depth ?? 0
-const branchClass = props.branchClass ?? ''
 
-const setActiveItem = (itemName: string) => {
-  activeItem.value = itemName
-}
+// Mengecek apakah menu item merupakan halaman yang sedang aktif
+const isItemActive = (path: string) => route.path === path
 
+// Navigasi
 const handleItemClick = (item: any) => {
-  setActiveItem(item.name)
   router.push(item.path)
 }
 
+// Buka/tutup grup
 const toggleGroup = (groupName: string) => {
   openGroups.value[groupName] = !openGroups.value[groupName]
 }
 
-const checkActiveOnRoute = () => {
-  const activePath = route.path
-  for (const item of props.menuItems.directItems) {
-    if (item.path === activePath) {
-      activeItem.value = item.name
+// Buat ID unik untuk setiap grup
+const createUniqueKey = (groupName: string) => {
+  return props.parentPath ? `${props.parentPath}-${groupName}` : groupName
+}
+
+// Cek apakah ada child di dalam grup ini yang sedang aktif (agar parent tetap terbuka)
+const isGroupActive = (subGroup: any): boolean => {
+  if (subGroup.directItems) {
+    for (const item of subGroup.directItems) {
+      if (route.path === item.path) return true
     }
   }
-}
-
-onMounted(() => {
-  checkActiveOnRoute()
-})
-
-const createUniqueKey = (groupName: string) => {
-  return props.parentPath
-    ? `${props.parentPath}-${groupName}`
-    : groupName
-}
-
-const isNodeActive = (node: any): boolean => {
-  for (const item of node.directItems) {
-    if (item.path === route.path) return true
+  if (subGroup.subGroups) {
+    return Object.values(subGroup.subGroups).some((sub: any) => isGroupActive(sub))
   }
-
-  return Object.values(node.subGroups).some((sub: any) =>
-    isNodeActive(sub)
-  )
+  return false
 }
+
+// Auto-open grup jika ada child yang aktif
+onMounted(() => {
+  if (props.menuItems.subGroups) {
+    for (const [groupName, subGroup] of Object.entries(props.menuItems.subGroups)) {
+      if (isGroupActive(subGroup)) {
+        openGroups.value[groupName] = true
+      }
+    }
+  }
+})
 </script>
 
 <template>
-  <!-- DIRECT ITEMS -->
-  <div v-for="item in menuItems.directItems" :key="item.name">
-    <button
-      @click="handleItemClick(item)"
-      class="w-full flex items-center gap-2 px-4 py-2 text-left rounded-lg transition"
-      :class="[
-        branchClass,
-        activeItem === item.name
-          ? 'text-indigo-700 font-semibold'
-          : 'text-gray-600 hover:text-indigo-600 hover:translate-x-1'
-      ]"
-      :style="{ fontSize: `${14 - depth * 0.5}px` }"
-    >
-      <!-- dot -->
-      <span
-        v-if="depth > 1"
-        class="w-1 h-1 rounded-full"
-        :class="activeItem === item.name ? 'bg-indigo-700' : 'bg-gray-300'"
-      ></span>
+  <div class="space-y-1">
+    <div v-for="item in menuItems.directItems" :key="item.name">
+      <button
+        @click="handleItemClick(item)"
+        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative"
+        :class="[
+          isItemActive(item.path)
+            ? 'bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600 pl-2.5'
+            : 'text-gray-600 hover:bg-gray-50 hover:text-blue-600'
+        ]"
+      >
+        <div v-if="isItemActive(item.path)" class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1/2 bg-blue-600 rounded-r-md"></div>
 
-      <!-- icon -->
-      <span v-if="item.meta?.icon" class="text-sm">
-        {{ item.meta.icon }}
-      </span>
+        <div v-if="depth > 0 && !item.meta?.icon" 
+          class="w-1.5 h-1.5 rounded-full ml-1 transition-colors"
+          :class="isItemActive(item.path) ? 'bg-blue-600' : 'bg-gray-300 group-hover:bg-blue-400'">
+        </div>
 
-      {{ item.meta.title }}
-    </button>
-  </div>
+        <component 
+          v-if="item.meta?.icon" 
+          :is="item.meta.icon" 
+          class="text-lg transition-transform group-hover:scale-110" 
+          :class="isItemActive(item.path) ? 'text-blue-600' : 'text-gray-400'"
+        />
 
-  <!-- SUB GROUP -->
-  <div
-    v-for="(subGroup, groupName) in menuItems.subGroups"
-    :key="createUniqueKey(groupName)"
-    class="ml-2"
-  >
-    <!-- HEADER -->
-    <button
-      @click="toggleGroup(groupName)"
-      class="w-full flex items-center justify-between px-4 py-2 rounded-lg transition"
-      :class="[
-        depth === 0 ? 'font-semibold' : '',
-        isNodeActive(subGroup)
-          ? 'text-indigo-700'
-          : 'text-gray-600 hover:text-indigo-600'
-      ]"
-      :style="{ fontSize: `${14 - depth * 0.5}px` }"
-    >
-      <div class="flex items-center gap-2">
-        <!-- optional icon -->
-        <span v-if="menuItems.subGroupIcons?.[groupName]">
-          {{ menuItems.subGroupIcons[groupName] }}
+        <span 
+          v-if="!mini || hovered" 
+          class="text-[13px] tracking-wide"
+        >
+          {{ item.meta?.title || item.name }}
         </span>
+      </button>
+    </div>
 
-        {{ groupName }}
+    <div v-for="(subGroup, groupName) in menuItems.subGroups" :key="createUniqueKey(String(groupName))">
+      
+      <button
+        @click="toggleGroup(String(groupName))"
+        class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors group mt-1"
+        :class="[
+          isGroupActive(subGroup) ? 'text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
+        ]"
+      >
+        <div class="flex items-center gap-3">
+          <component 
+            v-if="subGroup.meta?.icon" 
+            :is="subGroup.meta.icon" 
+            class="text-lg"
+            :class="isGroupActive(subGroup) ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-500'"
+          />
+          <span 
+            v-if="!mini || hovered"
+            class="text-[13px] tracking-wide"
+          >
+            {{ groupName }}
+          </span>
+        </div>
+
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          class="w-4 h-4 transition-transform duration-300"
+          :class="[
+            openGroups[String(groupName)] ? 'rotate-90 text-blue-600' : 'text-gray-400',
+            isGroupActive(subGroup) && !openGroups[String(groupName)] ? 'text-blue-600' : ''
+          ]"
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+
+      <div 
+        v-show="openGroups[String(groupName)]" 
+        class="mt-1 relative pl-4 ml-3"
+      >
+        <div class="absolute left-0 top-0 bottom-0 w-px bg-gray-200"></div>
+        
+        <RecursiveMenu
+          :menu-items="subGroup"
+          :parent-path="createUniqueKey(String(groupName))"
+          :depth="depth + 1"
+        />
       </div>
 
-      <!-- arrow -->
-      <span
-        class="transition-transform"
-        :class="openGroups[groupName] ? 'rotate-90' : ''"
-      >
-        ▶
-      </span>
-    </button>
-
-    <!-- CHILDREN -->
-    <div v-show="openGroups[groupName]" class="ml-3">
-      <RecursiveMenu
-        :menu-items="subGroup"
-        :parent-path="createUniqueKey(groupName)"
-        :depth="depth + 1"
-        :branch-class="branchClass"
-      />
     </div>
   </div>
 </template>

@@ -45,6 +45,9 @@ export const useNotificationStore = defineStore("notification", {
         this.dialog.status = false;
       }, 500);
     },
+    showLoading() {
+      this.loading = true;
+    },
     showAlert(message: string, callback: (() => void) | null = null) {
       if (callback) {
         callback();

@@ -2,8 +2,9 @@
 import { RouterView } from 'vue-router'
 import { onMounted } from 'vue'
 import { initFlowbite } from 'flowbite'
+import { useCustomizerStore } from '@/stores/customizer'
 
-import LoadingBar from '@/components/apps/LoadingBar.vue'
+// import LoadingBar from '@/components/apps/LoadingBar.vue'
 import Sidebar from './vertical-sidebar/Sidebar.vue'
 import VerticalHeader from './vertical-header/VerticalHeader.vue'
 
@@ -13,6 +14,8 @@ import {
   DialogNotification,
   LoadingOverlay
 } from '@/components/notifications'
+
+const customizer = useCustomizerStore();
 
 onMounted(() => {
   initFlowbite()
@@ -26,14 +29,22 @@ onMounted(() => {
     <Sidebar />
 
     <!-- Main Area -->
-    <div class="flex flex-col flex-1 overflow-hidden">
+    <div
+      :class="[
+        'flex flex-col flex-1 overflow-hidden transition-all duration-300',
+
+        customizer.Sidebar_drawer
+          ? (customizer.mini_sidebar ? 'ml-[80px]' : 'ml-[280px]')
+          : 'ml-0'
+      ]"
+    >
       
       <!-- Header -->
       <VerticalHeader />
 
       <!-- Content -->
       <main class="flex-1 overflow-y-auto p-6">
-        <LoadingBar />
+        <LoadingOverlay />
         <RouterView />
       </main>
 

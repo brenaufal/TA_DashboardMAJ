@@ -17,6 +17,10 @@ export const useCustomizerStore = defineStore('customizer', {
       this.mini_sidebar = !this.mini_sidebar
     },
 
+    toggleSidebar() {
+      this.Sidebar_drawer = !this.Sidebar_drawer
+    },
+    
     SET_THEME(payload: string) {
       this.actTheme = payload
     },

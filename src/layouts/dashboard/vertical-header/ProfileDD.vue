@@ -1,19 +1,31 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from '@/stores/Admin/auth'
+import { useNotificationStore } from '@/stores/notification'
 import { useRouter } from 'vue-router'
 import ChangePassword from '@/components/ChangePassword.vue'
 import { LockOutlined, LogoutOutlined } from '@ant-design/icons-vue'
 
 const authStore = useAuthStore()
-const user = authStore.user
+const notificationStore = useNotificationStore()
 const router = useRouter()
 
 const showPasswordDialog = ref(false)
 
-const handlePasswordChange = (data: { oldPassword: string; newPassword: string; confirmPassword: string }) => {
-  console.log('Password change requested:', data)
-  showPasswordDialog.value = false
+const handlePasswordChange = async (data: {
+  oldPassword: string
+  newPassword: string
+  confirmPassword: string
+}) => {
+  try {
+    await authStore.changePassword(data)
+
+    notificationStore.showAlertSuccess('Password berhasil diubah')
+
+    showPasswordDialog.value = false
+  } catch (e: any) {
+    notificationStore.showAlertError(e.message)
+  }
 }
 
 const handleCloseDialog = () => {
@@ -32,11 +44,21 @@ const handleLogout = () => {
 
     <!-- User Info -->
     <div class="flex items-center p-4 border-b">
-      <img
-        src="/src/assets/images/users/avatar-1.png"
-        class="w-8 h-8 rounded-full mr-3"
-        alt="user"
-      />
+      <!-- Avatar utama -->
+      <div class="relative w-8 h-8 rounded-full mr-3 overflow-hidden border border-gray-200 bg-gradient-to-tr from-blue-100 to-blue-50 flex items-center justify-center">
+    
+        <img
+          v-if="authStore.user?.profile_pic"
+          :src="`http://localhost:8080/uploads/profile/${authStore.user.profile_pic}`"
+          class="w-full h-full object-cover"
+          alt="user"
+        />
+        
+        <!-- Fallback kalau tidak ada foto -->
+        <span v-else class="text-blue-500 font-semibold text-xs">
+          {{ authStore.user?.nama?.charAt(0).toUpperCase() ?? '-' }}
+        </span>
+      </div>
 
       <div class="flex-1">
         <h6 class="text-sm font-semibold text-slate-800 capitalize">

@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useCustomizerStore } from '@/stores/customizer'
 import { useConfigStore } from '@/stores/config'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from '@/stores/Admin/auth'
 import { storeToRefs } from 'pinia'
 
 import ProfileDD from './ProfileDD.vue'
@@ -19,6 +19,10 @@ const isOpen = ref(false)
 const toggleDropdown = () => {
   isOpen.value = !isOpen.value
 }
+
+const handleToggle = () => {
+  customizer.mini_sidebar = !customizer.mini_sidebar
+}
 </script>
 
 <template>
@@ -27,7 +31,7 @@ const toggleDropdown = () => {
     <!-- LEFT -->
     <div class="flex items-center gap-2">
       <button
-        @click="customizer.toggleMiniSidebar()"
+        @click="handleToggle()"
         class="p-2 rounded hover:bg-gray-100 transition"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24">
@@ -46,12 +50,24 @@ const toggleDropdown = () => {
         @click="toggleDropdown"
         class="flex items-center gap-2 p-2 rounded hover:bg-gray-100 transition"
       >
-        <img
-          src="/src/assets/images/users/avatar-1.png"
-          class="w-8 h-8 rounded-full"
-        />
+        <!-- Avatar utama -->
+        <div class="relative w-8 h-8 rounded-full mr-3 overflow-hidden border border-gray-200 bg-gradient-to-tr from-blue-100 to-blue-50 flex items-center justify-center">
+          
+          <img
+            v-if="user?.profile_pic"
+            :src="`http://localhost:8080/uploads/profile/${user.profile_pic}`"
+            class="w-full h-full object-cover"
+            alt="user"
+          />
+          
+          <!-- Fallback kalau tidak ada foto -->
+          <span v-else class="text-blue-500 font-semibold text-xs">
+            {{ user?.nama?.charAt(0).toUpperCase() ?? '-' }}
+          </span>
+        </div>
+
         <span class="hidden sm:block text-sm font-medium">
-          {{ user?.first_name ?? '' }}
+          {{ user?.nama ?? '' }}
         </span>
       </button>
 
