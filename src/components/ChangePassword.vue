@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useAuthStore } from '@/stores/auth';
+import { useAuthStore } from '@/stores/Admin/auth';
 import { useNotificationStore } from '@/stores/notification';
 
-const emit = defineEmits<{
-  close: [];
-}>();
+const emit = defineEmits(['submit', 'close'])
 
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
@@ -17,38 +15,23 @@ const showOldPassword = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
 
-const handleSubmit = async () => {
-  // Basic validation
+const handleSubmit = () => {
   if (!oldPassword.value || !newPassword.value || !confirmPassword.value) {
-    notificationStore.showDialogWarning('Warning', 'Please fill in all fields', () => {});
-    return;
+    notificationStore.showDialogWarning('Warning', 'Please fill in all fields')
+    return
   }
 
   if (newPassword.value !== confirmPassword.value) {
-    notificationStore.showDialogWarning('Warning', 'New password and confirm password do not match', () => {});
-    return;
+    notificationStore.showDialogWarning('Warning', 'Password tidak cocok')
+    return
   }
 
-  if (newPassword.value.length < 8) {
-    notificationStore.showDialogWarning('Warning', 'Password must be at least 8 characters', () => {});
-    return;
-  }
-
-  // Call the store action to change password
-  const result = await authStore.changePassword(
-    oldPassword.value,
-    newPassword.value,
-    confirmPassword.value
-  );
-
-  if (result.success) {
-    // Reset form and close modal on success
-    oldPassword.value = '';
-    newPassword.value = '';
-    confirmPassword.value = '';
-    emit('close');
-  }
-};
+  emit('submit', {
+    oldPassword: oldPassword.value,
+    newPassword: newPassword.value,
+    confirmPassword: confirmPassword.value
+  })
+}
 
 const handleClose = () => {
   // Reset form

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 // import { authService } from '@/services/Admin/authService'
 import { useNotificationStore } from '@/stores/notification'
-import axios from 'axios'
+import api from '@/utils/axios'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -14,7 +14,7 @@ export const useAuthStore = defineStore('auth', {
     async login(payload: { username: string; password: string }) {
       const notificationStore = useNotificationStore()
       try {
-        const res = await axios.post('http://localhost:8080/login', {
+        const res = await api.post('http://localhost:8080/login', {
           username: payload.username,
           password: payload.password
         }, 
@@ -67,7 +67,7 @@ export const useAuthStore = defineStore('auth', {
     }) {
       const notificationStore = useNotificationStore()
       try {
-        const res = await axios.post(
+        const res = await api.post(
           'http://localhost:8080/change-password',
           payload,
           {

@@ -67,7 +67,7 @@ export const useUserStore = defineStore('user', {
       } catch (err) {
         console.error(err)
         this.error = 'Gagal mengambil data user'
-        notificationStore.showAlertError('Gagal mengambil data user')
+        // notificationStore.showAlertError('Gagal mengambil data user')
       } finally {
         this.loading = false
       }

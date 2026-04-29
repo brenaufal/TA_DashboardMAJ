@@ -41,43 +41,6 @@ const breadcrumbs = shallowRef([
   }
 ]);
 
-
-
-// const openEditModal = (user) => {
-//   // Populate data dari user yang dipilih
-//   editForm.value = {
-//     id: user.id,
-//     nama: user.nama,
-//     username: user.username,
-//     role: user.role || '',
-//     line_area: user.line_area ? [...user.line_area] : [],
-//     password: '', 
-//     confirmPassword: '',
-//     profile_pic: user.profile_pic || null
-//   };
-  
-//   editImagePreview.value = user.profile_pic || null;
-//   editModal.value = true;
-// };
-
-// const triggerEditFileInput = () => {
-//   editFileInput.value.click();
-// };
-
-// const handleEditFileUpload = (event) => {
-//   const file = event.target.files[0];
-//   if (file) {
-//     editForm.value.profile_pic = file;
-//     editImagePreview.value = URL.createObjectURL(file);
-//   }
-// };
-
-// const removeEditImage = () => {
-//   editForm.value.profile_pic = null;
-//   editImagePreview.value = null;
-//   if (editFileInput.value) editFileInput.value.value = '';
-// };
-
 const toggleEditLine = (line) => {
   const index = userStore.editForm.line_area.indexOf(line);
   if (index === -1) {
@@ -107,10 +70,10 @@ const updateUser = async () => {
 }
 
 const deleteUser = async (id: number, nama: string) => {
-  notificationStore.showConfirm("Hapus Pengguna", `Yakin ingin menghapus ${nama}?`, async () => {
+  notificationStore.showConfirm("Hapus User", `Yakin ingin menghapus ${nama}?`, async () => {
     try {
       await userStore.deleteUser(id)
-      notificationStore.showAlertSuccess(`Pengguna ${nama} berhasil dihapus`)
+      notificationStore.showAlertSuccess(`User ${nama} berhasil dihapus`)
     } catch (e: any) {
       notificationStore.showAlertError(e.message)
     }
@@ -189,7 +152,7 @@ onMounted(() => {
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Tambah Pengguna
+        Tambah User
       </button>
     </div>
 
