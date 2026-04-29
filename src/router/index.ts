@@ -53,7 +53,7 @@ const router = createRouter({
         {
           path: 'verification/qa',
           name: 'QAVerification',
-          component: () => import('@/views/production/Verification/QAVerification.vue'),
+          component: () => import('@/views/admin/Verification/QAVerification.vue'),
           meta: { requiresAuth: true, role: ["Admin", "Manager", "Supervisor"] }
         },
         // {
