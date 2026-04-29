@@ -3,10 +3,12 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { Form } from 'vee-validate';
 import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons-vue';
-import { useAuthStore } from '@/stores/auth';
+import { useAuthStore } from '@/stores/Admin/auth';
+import { useNotificationStore } from '@/stores/notification';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const notification = useNotificationStore();
 
 const showPassword = ref(false);
 const password = ref('');
@@ -23,15 +25,27 @@ const usernameRules = [(v: string) => !!v || 'Username wajib diisi'];
 
 async function validate(_: unknown, { setErrors }: { setErrors: (errors: Record<string, string>) => void }) {
   try {
+    notification.showLoading() // 🔥 START LOADING
+
     await authStore.login({
       username: username.value,
       password: password.value
-    });
+    })
 
-    await router.push('/dashboard');
+    notification.disableLoading()
+
+    await router.push('/dashboard')
+
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Login gagal.';
-    setErrors({ apiError: message });
+    notification.disableLoading()
+
+    const message = error instanceof Error ? error.message : 'Login gagal.'
+
+    // ✅ cara baru (popup dialog)
+    notification.showDialogError('Login Gagal', message)
+
+    // optional: tetap isi vee-validate
+    setErrors({ apiError: message })
   }
 }
 </script>
